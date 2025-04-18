@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        // Update income dynamically
+        async function updateIncome(event) {
+            event.preventDefault();
+            
+            const income = document.querySelector('input[name="income"]').value;
+            
+            // Create form data with just the income
+            const formData = new FormData();
+            formData.append('income', income);
+
+            const response = await fetch('/add', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Update the UI with the new income and savings
+                document.getElementById('income').textContent = `₹${data.income}`;
+                document.getElementById('total-expenses').textContent = `₹${data.total_expenses}`;
+                document.getElementById('savings').textContent = `₹${data.savings}`;
+                // Clear the input field
+                document.querySelector('input[name="income"]').value = '';
+            } else {
+                alert('Failed to update income');
+            }
+        }
+
+        // Add expense dynamically
+        async function addExpense(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+
+            const response = await fetch('/add', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Update the expenses table with the new expense
+                const newExpenseRow = `
+                    <tr id="expense-${data.id}">
+                        <td>${data.expense_date}</td>
+                        <td>${data.category}</td>
+                        <td>₹${data.expense_amount}</td>
+                        <td><button onclick="deleteExpense('${data.id}')">Delete</button></td>
+                    </tr>
+                `;
+                document.getElementById('expenses').insertAdjacentHTML('beforeend', newExpenseRow);
+                document.getElementById('total-expenses').textContent = `₹${data.total_expenses}`;
+                document.getElementById('savings').textContent = `₹${data.savings}`;
+                // Reset the form
+                event.target.reset();
+            } else {
+                alert('Failed to add expense');
+            }
+        }
+
+        // Delete expense dynamically
+        async function deleteExpense(expenseId) {
+            const response = await fetch(`/delete/${expenseId}`, {
+                method: 'POST',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById(`expense-${expenseId}`).remove();
+                document.getElementById('total-expenses').textContent = `₹${data.total_expenses}`;
+                document.getElementById('savings').textContent = `₹${data.savings}`;
+            } else {
+                alert('Failed to delete expense');
+            }
+        }
+
+        // Handle bill upload with OCR
+        async function uploadBill(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    try {
+        // Visual feedback
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Processing...";
+        
+        // Critical: Include credentials
+        const response = await fetch('/upload_bill', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include' // 👈 Sends cookies
+        });
+
+        // Handle response
+        if (response.status === 401) {
+            window.location.href = "/login"; // Redirect if unauthorized
+            return;
+        }
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error);
+
+        // Success
+        alert(`Added ₹${result.data.expense_amount} (${result.data.category})`);
+        window.location.reload();
+
+    } catch (error) {
+        alert("Error: " + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Scan and Add Expense";
+    }
+}
+
+// Attach event listener
+document.querySelector('form[action="/upload_bill"]')
+    .addEventListener('submit', uploadBill);
+    </script>
+</head>
+<body>
+    <h2>Welcome, {{ email }}</h2>
+
+    <h3>Your Income:</h3>
+    <p><strong id="income">₹{{ income }}</strong></p>
+
+    <h3>Total Expenses:</h3>
+    <p><strong id="total-expenses">₹{{ total_expenses }}</strong></p>
+
+    <h3>Total Saved Amount:</h3>
+    <p><strong id="savings">₹{{ savings }}</strong></p>
+
+    <hr>
+
+    <h3>Update Income:</h3>
+    <form method="POST" onsubmit="updateIncome(event)">
+        <input type="number" name="income" placeholder="New income" required>
+        <button type="submit">Update Income</button>
+    </form>
+
+    <hr>
+
+    <h3>Your Expenses:</h3>
+    <table border="1" cellpadding="10">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Expense</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="expenses">
+            {% for expense in expenses %}
+            <tr id="expense-{{ expense.id }}">
+                <td>{{ expense.expense_date }}</td>
+                <td>{{ expense.category }}</td>
+                <td>₹{{ expense.expense_amount }}</td>
+                <td><button onclick="deleteExpense('{{ expense.id }}')">Delete</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h3>Add New Expense</h3>
+    <form method="POST" onsubmit="addExpense(event)">
+        <label for="expense_amount">Amount:</label>
+        <input type="number" name="expense_amount" required>
+
+        <label for="expense_date">Date:</label>
+        <input type="date" name="expense_date" required>
+
+        <label for="category">Category:</label>
+        <input type="text" name="category" required>
+
+        <button type="submit">Add Expense</button>
+    </form>
+
+    <hr>
+
+    <h3>Upload Bill (OCR Scan)</h3>
+    <form method="POST" action="/upload_bill" enctype="multipart/form-data" id="billUploadForm">
+        <label for="bill_image">Bill Image/PDF:</label>
+        <input type="file" name="bill_image" accept="image/*,.pdf" required>
+        <div id="uploadStatus" style="margin: 10px 0; display: none;">
+            <div class="progress-bar" style="height: 20px; background: #f0f0f0; border-radius: 10px;">
+                <div class="progress" style="height: 100%; width: 0%; background: #4CAF50; border-radius: 10px;"></div>
+            </div>
+            <p class="status-text" style="margin-top: 5px;"></p>
+        </div>
+        <button type="submit">Scan and Add Expense</button>
+    </form>
+
+    <hr>
+
+    <h3>Monthly Summary</h3>
+    <form method="GET" action="/monthly_summary">
+        <label for="month">Select Month:</label>
+        <input type="month" name="month" required>
+        <button type="submit">Generate Summary</button>
+    </form>
+
+    <style>
+        .progress-bar {
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: #4CAF50;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .status-text {
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</body>
+</html>
