@@ -1,0 +1,546 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2, h3 {
+      color: #2c3e50;
+    }
+
+    form {
+      background: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+    }
+
+    input[type="file"], input[type="number"] {
+      padding: 0.4rem;
+      margin: 1rem 0;
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-right: 0.5rem;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .card {
+      background: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+    }
+
+    .result-card {
+      margin-top: 1.5rem;
+      border-left: 4px solid #3498db;
+    }
+
+    .error-card {
+      border-left: 4px solid #e74c3c;
+      background-color: #fff8f8;
+    }
+
+    .finance-summary {
+      border-left: 4px solid #2ecc71;
+      background-color: #f8fff9;
+    }
+
+    pre {
+      background: #f1f1f1;
+      padding: 1rem;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+
+    a {
+      text-decoration: none;
+      color: #e74c3c;
+      font-weight: bold;
+    }
+
+    a:hover {
+      color: #c0392b;
+    }
+
+    .file-info {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      margin-bottom: 0.5rem;
+    }
+
+    .results-header {
+      margin-top: 2rem;
+      border-bottom: 1px solid #ecf0f1;
+      padding-bottom: 0.5rem;
+    }
+
+    .finance-metrics {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .metric {
+      text-align: center;
+      padding: 0.5rem;
+      flex: 1;
+    }
+
+    .metric-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 0.3rem;
+    }
+
+    .positive {
+      color: #2ecc71;
+    }
+
+    .negative {
+      color: #e74c3c;
+    }
+
+    .section-title {
+      margin-bottom: 1rem;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Welcome, {{ user }}!</h2>
+
+  <div class="card finance-summary">
+    <h3 class="section-title">💰 Financial Overview</h3>
+    <form action="/update-salary" method="post">
+      <label for="salary">Monthly Salary (₹):</label>
+      <input type="number" name="salary" id="salary" step="0.01" min="0" 
+             value="{{ salary if salary else '' }}" required>
+      <button type="submit">Update Salary</button>
+    </form>
+    
+    <div class="finance-metrics">
+      <div class="metric">
+        <div>Total Salary</div>
+        <div class="metric-value">₹{{ "%.2f"|format(salary) if salary else '0.00' }}</div>
+      </div>
+      <div class="metric">
+        <div>Total Expenses</div>
+        <div class="metric-value">₹{{ "%.2f"|format(total_expenses) if total_expenses else '0.00' }}</div>
+      </div>
+      <div class="metric">
+        <div>Remaining</div>
+        <div class="metric-value {% if (salary - total_expenses) < 0 %}negative{% else %}positive{% endif %}">
+          ₹{{ "%.2f"|format(salary - total_expenses) if salary else '0.00' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <label for="files">Upload Bills (Multiple files supported):</label>
+    <input type="file" name="files" id="files" multiple accept="image/*" required>
+    <button type="submit">Process Bills</button>
+  </form>
+
+  {% if results %}
+    <h3 class="results-header">Processing Results</h3>
+    
+    {% for result in results %}
+      <div class="card {% if result.error %}error-card{% else %}result-card{% endif %}">
+        <div class="file-info">File: {{ result.filename }}</div>
+        
+        {% if result.error %}
+          <p style="color: #e74c3c;"><strong>Error:</strong> {{ result.error }}</p>
+        {% else %}
+          <h3>📋 Extracted Data</h3>
+          <p><strong>Amount:</strong> {% if result.data.amount %}₹{{ "%.2f"|format(result.data.amount) }}{% else %}Not detected{% endif %}</p>
+          <p><strong>Date:</strong> {{ result.data.date or "Not detected" }}</p>
+          <p><strong>Category:</strong> {{ result.data.category }}</p>
+          
+          {% if result.analysis %}
+            <h3 style="margin-top: 1rem;">🔍 Gemini Analysis</h3>
+            <pre>{{ result.analysis }}</pre>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <p style="margin-top: 2rem;"><a href="/logout">Logout</a></p>
+
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      color: #333;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    h2, h3 {
+      color: #2c3e50;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    form {
+      background: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 2rem;
+    }
+
+    input, select {
+      padding: 0.4rem;
+      margin: 0.5rem 0;
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .card {
+      background: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+    }
+
+    .finance-summary {
+      border-left: 4px solid #2ecc71;
+      background-color: #f8fff9;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 2rem;
+    }
+
+    .finance-metrics {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .metric {
+      text-align: center;
+      padding: 0.5rem;
+      flex: 1;
+    }
+
+    .metric-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 0.3rem;
+    }
+
+    .positive {
+      color: #2ecc71;
+    }
+
+    .negative {
+      color: #e74c3c;
+    }
+
+    .tab-container {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background: #ecf0f1;
+      margin-right: 0.5rem;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .tab.active {
+      background: #3498db;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .expense-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    .expense-table th, .expense-table td {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    .expense-table th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Welcome, {{ user }}!</h2>
+
+  <div class="card finance-summary">
+    <h3>💰 Financial Overview</h3>
+    <form action="/update-salary" method="post">
+      <label for="salary">Monthly Salary (₹):</label>
+      <input type="number" name="salary" id="salary" step="0.01" min="0" 
+             value="{{ salary if salary else '' }}" required>
+      <button type="submit">Update Salary</button>
+    </form>
+    
+    <div class="finance-metrics">
+      <div class="metric">
+        <div>Total Salary</div>
+        <div class="metric-value">₹{{ "%.2f"|format(salary) if salary else '0.00' }}</div>
+      </div>
+      <div class="metric">
+        <div>Total Expenses</div>
+        <div class="metric-value">₹{{ "%.2f"|format(total_expenses) if total_expenses else '0.00' }}</div>
+      </div>
+      <div class="metric">
+        <div>Remaining</div>
+        <div class="metric-value {% if (salary - total_expenses) < 0 %}negative{% else %}positive{% endif %}">
+          ₹{{ "%.2f"|format(salary - total_expenses) if salary else '0.00' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab active" onclick="switchTab('upload')">Upload Bills</div>
+    <div class="tab" onclick="switchTab('manual')">Add Expense Manually</div>
+    <div class="tab" onclick="switchTab('visualize')">Visualizations</div>
+  </div>
+
+  <div id="upload" class="tab-content active">
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <label for="files">Upload Bills (Multiple files supported):</label>
+      <input type="file" name="files" id="files" multiple accept="image/*">
+      <button type="submit">Process Bills</button>
+    </form>
+
+    {% if results %}
+      <h3>Processing Results</h3>
+      {% for result in results %}
+        <div class="card">
+          <p><strong>File:</strong> {{ result.filename }}</p>
+          {% if result.error %}
+            <p style="color: #e74c3c;"><strong>Error:</strong> {{ result.error }}</p>
+          {% else %}
+            <p><strong>Amount:</strong> ₹{{ "%.2f"|format(result.data.amount) }}</p>
+            <p><strong>Date:</strong> {{ result.data.date }}</p>
+            <p><strong>Category:</strong> {{ result.data.category }}</p>
+            {% if result.analysis %}
+              <p><strong>Analysis:</strong> {{ result.analysis }}</p>
+            {% endif %}
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <div id="manual" class="tab-content">
+    <form action="/add-expense" method="post">
+      <label for="amount">Amount (₹):</label>
+      <input type="number" name="amount" id="amount" step="0.01" min="0.01" required>
+      
+      <label for="category">Category:</label>
+      <select name="category" id="category" required>
+        <option value="Food">Food</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Transportation">Transportation</option>
+        <option value="Housing">Housing</option>
+        <option value="Entertainment">Entertainment</option>
+        <option value="Utilities">Utilities</option>
+        <option value="Healthcare">Healthcare</option>
+        <option value="Education">Education</option>
+        <option value="Other">Other</option>
+      </select>
+      
+      <label for="date">Date:</label>
+      <input type="date" name="date" id="date" required>
+      
+      <label for="description">Description (Optional):</label>
+      <input type="text" name="description" id="description">
+      
+      <button type="submit">Add Expense</button>
+    </form>
+  </div>
+
+  <div id="visualize" class="tab-content">
+    <div class="dashboard-grid">
+      <div class="card">
+        <h3>Expenses by Category</h3>
+        <div class="chart-container">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h3>Monthly Spending Trend</h3>
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h3>Recent Expenses</h3>
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for expense in recent_expenses %}
+          <tr>
+            <td>{{ expense.date }}</td>
+            <td>₹{{ "%.2f"|format(expense.amount) }}</td>
+            <td>{{ expense.category }}</td>
+            <td>{{ expense.description or '' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p style="margin-top: 2rem;"><a href="/logout">Logout</a></p>
+
+  <script>
+    function switchTab(tabId) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Deactivate all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Activate selected tab
+      document.getElementById(tabId).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+      // Category Pie Chart
+      const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+      const categoryChart = new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+          labels: {{ category_labels|safe }},
+          datasets: [{
+            data: {{ category_values|safe }},
+            backgroundColor: [
+              '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+              '#9966FF', '#FF9F40', '#8AC249', '#EA5545'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false
+        }
+      });
+
+      // Monthly Bar Chart
+      const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+      const monthlyChart = new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+          labels: {{ monthly_labels|safe }},
+          datasets: [{
+            label: 'Monthly Expenses (₹)',
+            data: {{ monthly_values|safe }},
+            backgroundColor: '#3498db'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
