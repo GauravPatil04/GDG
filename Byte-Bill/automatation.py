@@ -19,7 +19,7 @@ from pdf2image import convert_from_path
 import plotly.express as px
 
 # Configure Tesseract with your specific path
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'
 
 # Configure Gemini
 GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", os.getenv("GOOGLE_API_KEY"))
