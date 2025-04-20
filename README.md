@@ -1,7 +1,5 @@
 # 💸 Bite Bill - Smart Expense Tracking Automation
 
-![Bite Bill Logo](https://via.placeholder.com/150x150.png?text=💰)
-
 An intelligent expense management system that automates bill processing from emails and documents using AI-powered insights.
 
 ## 🌟 Key Features
